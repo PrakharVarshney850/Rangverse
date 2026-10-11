@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Placeholders only. They let the app boot and serve its public routes; no
+  # request reaches a real Supabase project. Real credentials live in secrets
+  # and are used only by the live-e2e job below.
+  NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: placeholder-publishable-key-for-ci-only
+  NEXT_PUBLIC_SITE_URL: http://localhost:3100
+  SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key-for-ci-only
+
+jobs:
+  verify:
+    name: Lint, types, tests and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      # Applies every migration to a real PostgreSQL instance (PGlite) and runs
+      # the full authorization matrix. No Docker and no external database.
+      - name: Database authorization tests
+        run: npm run test:rls
+
+      - name: Integration tests
+        run: npm run test:integration
+
+      - name: Production build
+        run: npm run build
+
+  e2e:
+    name: Browser and accessibility tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # The public suite runs with placeholder credentials. The authenticated
+      # specs skip with an explicit reason; they are never reported as passed.
+      - name: Playwright (public suite)
+        run: npm run test:e2e
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  live-e2e:
+    name: Authenticated browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: verify
+    # Runs only when a real Supabase project and administrator credentials are
+    # configured. Without them the job is skipped rather than producing a
+    # misleading pass.
+    if: github.event_name == 'push' && vars.RANGVERSE_LIVE_E2E == 'true'
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+      NEXT_PUBLIC_SITE_URL: http://localhost:3100
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright (authenticated suite)
+        run: npm run test:e2e
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-live
+          path: playwright-report/
+          retention-days: 7

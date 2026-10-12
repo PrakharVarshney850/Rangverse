@@ -19,6 +19,7 @@
     "test:integration": "vitest run --project integration",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps chromium",
+    "check": "tsx scripts/check-setup.ts",
     "db:bootstrap-admin": "tsx scripts/bootstrap-admin.ts",
     "db:types": "supabase gen types typescript --local > src/lib/db/database.types.ts",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build"

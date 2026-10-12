@@ -139,8 +139,12 @@ reported as passing. See [docs/testing.md](./docs/testing.md).
 
 ## Documentation
 
+> **Pehli baar setup kar rahe ho?** → **[docs/SETUP-GUIDE-HINDI.md](./docs/SETUP-GUIDE-HINDI.md)**
+> Step-by-step guide, Hinglish me, beginners ke liye — Node install se lekar live deploy tak.
+
 | Document | Contents |
 |---|---|
+| [SETUP-GUIDE-HINDI.md](./docs/SETUP-GUIDE-HINDI.md) | Beginner walkthrough: install → GitHub → Supabase → Vercel |
 | [AGENTS.md](./AGENTS.md) | Coding standards, security rules, architectural conventions |
 | [docs/architecture.md](./docs/architecture.md) | Structure, data flow, permission boundaries |
 | [docs/security-model.md](./docs/security-model.md) | Roles, authorization matrix, RLS design, secrets |

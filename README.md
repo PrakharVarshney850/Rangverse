@@ -85,6 +85,7 @@ Then create the first administrator. This is interactive, reads the password wit
 and refuses to run if an administrator already exists:
 
 ```bash
+npm run check                 # confirms what is configured and what is missing
 npm run db:bootstrap-admin
 ```
 
@@ -106,6 +107,7 @@ Useful scripts:
 | Script | What it does |
 |---|---|
 | `npm run dev` | Dev server |
+| `npm run check` | Reports which setup step is incomplete, and how to fix it |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` with strict mode |
@@ -157,11 +159,18 @@ reported as passing. See [docs/testing.md](./docs/testing.md).
 
 ## Common issues
 
+**First, run `npm run check`** — it reports which setup step is incomplete and how to fix it.
+
 **"running scripts is disabled on this system"**
 PowerShell is blocking `npm.ps1`. Use `& $env:ComSpec /c "npm <command>"`.
 
 **The app redirects everything to `/setup-required`**
 `.env.local` is missing or incomplete. Copy `.env.example` and fill in all four variables.
+Note that Notepad silently saves it as `.env.local.txt`; `npm run check` detects this.
+
+**Sign-in says "cannot reach the database"**
+`NEXT_PUBLIC_SUPABASE_URL` is wrong, or the project is unreachable. This is reported separately
+from rejected credentials so the two are not confused.
 
 **`supabase start` fails**
 It needs Docker Desktop. If you cannot install Docker, use a hosted Supabase project — the

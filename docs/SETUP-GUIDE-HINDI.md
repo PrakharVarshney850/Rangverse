@@ -446,7 +446,39 @@ dir .env*
 > ### Ye file GitHub pe nahi jayegi
 > `.gitignore` me already set hai. Keys safe rahengi. ✅
 
-## Step 5.2 — Pehla admin banao
+## Step 5.2 — Check karo kya missing hai
+
+Aage badhne se pehle ye chala lo — ye bata dega ki ab tak kya sahi hua aur kya
+baaki hai:
+
+```
+npm run check
+```
+
+Aisa kuch dikhega:
+
+```
+1. Environment file
+  ✓ .env.local mil gayi
+2. Required values
+  ✓ Supabase URL: https://xxxxx.supabase.co
+  ✓ anon key mil gayi
+  ✓ service_role key mil gayi
+3. Supabase se connection
+  ✓ Supabase tak pahunch ho gayi
+4. Tables
+  ✓ Saari 14 tables mil gayin
+5. Administrator
+  ✗ Koi administrator nahi bana
+```
+
+Last wala ✗ abhi **normal hai** — agla step wahi banata hai.
+
+Koi aur ✗ dikhe to uske neeche `→` wala line padho, usme fix likha hai.
+
+> Ye script sirf **padhta** hai — kuch banata ya mitata nahi.
+
+## Step 5.3 — Pehla admin banao
 
 Terminal me:
 
@@ -476,7 +508,7 @@ Success pe: `✓ Administrator created for aapki@email.com`
 > **Agar error aaye** *"An administrator already exists"* — matlab pehle hi
 > bana liya tha. Theek hai, aage badho.
 
-## Step 5.3 — App chalao
+## Step 5.4 — App chalao
 
 ```
 npm run dev
@@ -503,7 +535,7 @@ App teen **alag-alag** message deta hai, taaki aapko asli problem pata chale:
 |---|---|---|
 | *"Rangverse is not connected yet"* | `.env.local` mili hi nahi, ya `.env.local.txt` ban gayi | Step 5.1 dobara |
 | *"Cannot reach the Rangverse database right now"* | File to mil gayi, lekin Supabase tak pahunch nahi raha — URL galat, ya internet | URL check karo (`https://` se shuru, `.supabase.co` pe khatam) |
-| *"That email and password combination did not work"* | Server theek hai, **credentials galat hain** | Step 5.2 dobara, ya password galat yaad hai |
+| *"That email and password combination did not work"* | Server theek hai, **credentials galat hain** | Step 5.3 dobara, ya password galat yaad hai |
 
 > Ye farq isliye rakha hai taaki aap ghante password reset na karte raho jab
 > asli problem URL me ho.

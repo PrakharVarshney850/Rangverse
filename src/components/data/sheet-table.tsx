@@ -210,6 +210,7 @@ export function SheetTable({
                             <button
                               type="button"
                               onClick={header.column.getToggleSortingHandler()}
+                              aria-label={`Sort by ${String(header.column.columnDef.header)}`}
                               className="hover:text-foreground inline-flex items-center gap-1.5"
                             >
                               {flexRender(header.column.columnDef.header, header.getContext())}

@@ -29,6 +29,21 @@ function safeRedirect(next: FormDataEntryValue | null): string {
   return "/overview";
 }
 
+/**
+ * Distinguishes "the auth server is unreachable or misconfigured" from "those
+ * credentials are wrong".
+ *
+ * Supabase reports a failed fetch as `AuthRetryableFetchError`, usually with
+ * status 0 or a 5xx. A rejected credential is a 400 with an explicit code.
+ */
+function isConnectivityError(error: { name?: string; status?: number; message?: string }): boolean {
+  if (error.name === "AuthRetryableFetchError") return true;
+  if (typeof error.status === "number" && (error.status === 0 || error.status >= 500)) return true;
+  return /fetch failed|network|ENOTFOUND|ECONNREFUSED|EAI_AGAIN|timeout/i.test(
+    error.message ?? "",
+  );
+}
+
 export async function signInAction(
   _previous: ActionState,
   formData: FormData,
@@ -49,7 +64,19 @@ export async function signInAction(
   });
 
   if (error || !data.user) {
-    // Deliberately generic: never reveal whether an address is registered.
+    // A connectivity or configuration failure is reported as such. Saying
+    // "wrong password" when the server is unreachable sends people hunting for
+    // a problem that does not exist. This leaks nothing: a network error says
+    // nothing about whether an account exists.
+    if (error && isConnectivityError(error)) {
+      return {
+        status: "error",
+        message:
+          "Cannot reach the Rangverse database right now. Check your connection, or ask an administrator to confirm the server configuration.",
+      };
+    }
+
+    // Otherwise deliberately generic: never reveal whether an address is registered.
     return { status: "error", message: "That email and password combination did not work." };
   }
 

@@ -390,10 +390,23 @@ export function crossesBusinessMidnight(session: AttendanceSessionLike): boolean
 }
 
 /** UTC instants bounding a business-time calendar day, as ISO strings. */
+function parseBusinessDateKey(dateKey: string): [number, number, number] {
+  const [yearText, monthText, dayText] = dateKey.split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+
+  if ([year, month, day].some((part) => Number.isNaN(part))) {
+    throw new InvalidIntervalError(`Invalid business date key: ${dateKey}`);
+  }
+
+  return [year, month, day];
+}
+
 export function businessDayRange(dateKey: string): { fromIso: string; toIso: string } {
-  const from = new TZDate(`${dateKey}T00:00:00`, BUSINESS_TIME_ZONE);
-  const to = new TZDate(`${dateKey}T00:00:00`, BUSINESS_TIME_ZONE);
-  to.setDate(to.getDate() + 1);
+  const [year, month, day] = parseBusinessDateKey(dateKey);
+  const from = new TZDate(year, month - 1, day, 0, 0, 0, BUSINESS_TIME_ZONE);
+  const to = new TZDate(year, month - 1, day + 1, 0, 0, 0, BUSINESS_TIME_ZONE);
   return { fromIso: new Date(from).toISOString(), toIso: new Date(to).toISOString() };
 }
 
@@ -404,8 +417,8 @@ export function businessWeekRange(value: string | Date = new Date()): {
 } {
   const weekStart = startOfWeek(toBusinessTime(value), { weekStartsOn: 1 });
   const startKey = format(weekStart, "yyyy-MM-dd");
-  const from = new TZDate(`${startKey}T00:00:00`, BUSINESS_TIME_ZONE);
-  const to = new TZDate(`${startKey}T00:00:00`, BUSINESS_TIME_ZONE);
-  to.setDate(to.getDate() + 7);
+  const [year, month, day] = parseBusinessDateKey(startKey);
+  const from = new TZDate(year, month - 1, day, 0, 0, 0, BUSINESS_TIME_ZONE);
+  const to = new TZDate(year, month - 1, day + 7, 0, 0, 0, BUSINESS_TIME_ZONE);
   return { fromIso: new Date(from).toISOString(), toIso: new Date(to).toISOString() };
 }

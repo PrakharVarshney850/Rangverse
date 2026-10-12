@@ -20,6 +20,23 @@ Rangverse ke 3 hisse hain:
 
 Teeno ko aapas me jodna hai. Isliye steps itne hain.
 
+### Kis order me karein
+
+Parts 1 → 2 → 4 → 5 → 3 → 6 **sabse achha order hai**:
+
+| Pehle | Kyun |
+|---|---|
+| Part 1, 2 (install + project) | Base hai, iske bina kuch nahi |
+| **Part 4 (Supabase)** | Database ke bina app chalegi hi nahi |
+| **Part 5 (local pe chalao)** | 👈 Yahan app chalti hui dikhegi — sabse achha milestone |
+| Part 3 (GitHub) | Kabhi bhi kar sakte ho |
+| Part 6 (Vercel) | GitHub ke baad hi hoga |
+
+**Shortcut:** Agar jaldi app chalti hui dekhni hai → Part 2 ke baad **seedha Part 4**
+pe jao, phir Part 5. GitHub (Part 3) baad me kar lena — deploy se pehle kabhi bhi.
+
+GitHub pehle karna chahte ho to bhi theek hai, order se koi farq nahi padta.
+
 ---
 
 # PART 1 — Laptop taiyaar karo
@@ -672,6 +689,60 @@ Vercel **apne aap** naya version deploy kar dega. Kuch aur nahi karna.
 | `EPERM ... .next` | Project OneDrive me hai | `C:\Projects` me shift karo |
 | `npm install` fail | Node purana | `node --version` — 20+ chahiye |
 | PowerShell "scripts disabled" | Windows policy | `cmd` use karo |
+
+---
+
+# Checklist — tick karte jao
+
+```
+PART 1 — Laptop
+  □ Node.js LTS install + restart
+  □ node --version chal raha hai
+  □ Git install
+  □ VS Code install
+
+PART 2 — Project
+  □ Zip extract C:\Projects me (OneDrive me NAHI)
+  □ VS Code me folder khola
+  □ npm install chal gaya
+
+PART 4 — Supabase
+  □ Project banaya (Mumbai region)
+  □ DB password save kiya
+  □ 0001_core.sql           chalayi
+  □ 0002_attendance.sql     chalayi
+  □ 0003_tasks.sql          chalayi
+  □ 0004_daily_reports.sql  chalayi
+  □ 0005_data_hub.sql       chalayi
+  □ 0006_time_state_machine.sql chalayi
+  □ "Allow new users to sign up" OFF kiya
+  □ 3 keys Notepad me label laga ke likhi
+
+PART 5 — Local
+  □ .env.local banayi (VS Code me)
+  □ npm run check — sab ✓ (admin wala ✗ normal hai)
+  □ npm run db:bootstrap-admin
+  □ Admin password save kiya
+  □ npm run dev → localhost:3000 khula
+  □ LOGIN HO GAYA   ← sabse important
+
+PART 3 — GitHub
+  □ Account banaya (personal email)
+  □ PRIVATE repo banaya
+  □ git config se apna naam/email set kiya
+  □ Personal Access Token banaya + save kiya
+  □ git push ho gaya
+
+PART 6 — Vercel
+  □ Project import kiya
+  □ 4 env vars daale (service_role = Sensitive)
+  □ Deploy ho gaya
+  □ NEXT_PUBLIC_SITE_URL asli URL se update kiya
+  □ Redeploy kiya
+  □ Supabase me Site URL + /auth/callback add kiya
+  □ Live URL pe login hua
+  □ Invite email test ki
+```
 
 ---
 

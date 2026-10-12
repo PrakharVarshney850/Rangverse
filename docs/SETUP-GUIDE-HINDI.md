@@ -112,6 +112,22 @@ Ab aapka project yahan hoga: `C:\Projects\Rangverse`
 > `package.json` file dikh rahi hai. Agar `Rangverse` ke andar ek aur `Rangverse`
 > folder hai, to andar wale ko bahar nikaal lo.
 
+### 🔴 Project OneDrive / Desktop me MAT rakhna
+
+Agar project OneDrive ke andar (ya sync hone wale Desktop/Documents me) rakha,
+to build karte waqt ye error aayega:
+
+```
+EPERM: operation not permitted, unlink '.next\static\...'
+```
+
+Hota kyun hai: OneDrive background me files sync karta rehta hai aur build
+folder ko lock kar leta hai. Next.js us file ko replace nahi kar pata.
+
+**Isliye `C:\Projects` jaisi simple jagah use karo** — jo sync na hoti ho.
+
+Agar phir bhi ye error aa jaye: `.next` folder delete karke dobara build karo.
+
 ## Step 2.2 — Us folder me terminal kholo
 
 Ye bahut kaam aayega, isliye dhyan se:
@@ -479,14 +495,26 @@ Dikhna chahiye: kaala background, gold "Sign in" button, Rangverse logo.
 
 Apni admin email + password se **login karke dekho**.
 
-### Kuch na chale to
+### Kuch na chale to — message dhyan se padho
+
+App teen **alag-alag** message deta hai, taaki aapko asli problem pata chale:
+
+| Screen pe dikhe | Asli problem | Fix |
+|---|---|---|
+| *"Rangverse is not connected yet"* | `.env.local` mili hi nahi, ya `.env.local.txt` ban gayi | Step 5.1 dobara |
+| *"Cannot reach the Rangverse database right now"* | File to mil gayi, lekin Supabase tak pahunch nahi raha — URL galat, ya internet | URL check karo (`https://` se shuru, `.supabase.co` pe khatam) |
+| *"That email and password combination did not work"* | Server theek hai, **credentials galat hain** | Step 5.2 dobara, ya password galat yaad hai |
+
+> Ye farq isliye rakha hai taaki aap ghante password reset na karte raho jab
+> asli problem URL me ho.
+
+### Baaki problems
 
 | Problem | Kya karein |
 |---|---|
-| "Setup required" page dikhe | `.env.local` nahi mili ya galat hai — Step 5.1 dobara |
-| Login pe "email/password did not work" | Step 5.2 nahi chalaya, ya password galat |
 | Page khulta hi nahi | Terminal check karo, `npm run dev` chal raha hai? |
 | Port 3000 busy | Koi aur app chal rahi hai, band karo |
+| `EPERM ... .next` | Project OneDrive me hai — `C:\Projects` me shift karo |
 
 **Terminal band karne ke liye:** `Ctrl + C` dabao
 
@@ -602,11 +630,14 @@ Vercel **apne aap** naya version deploy kar dega. Kuch aur nahi karna.
 
 | Dikh raha hai | Matlab | Fix |
 |---|---|---|
-| "Setup required" page | Env vars missing/galat | Vercel me chaaro check karo, phir Redeploy |
+| "Rangverse is not connected yet" | Env vars missing/galat | Vercel me chaaro check karo, phir Redeploy |
+| "Cannot reach the Rangverse database" | URL galat ya Supabase down | URL verify karo |
+| "Email and password did not work" | Credentials galat (server theek hai) | Password check karo |
 | Login ke baad khali | Admin nahi bana | `npm run db:bootstrap-admin` |
 | Invite email ka link galat jagah | `NEXT_PUBLIC_SITE_URL` galat | Step 6.4 dono fix |
 | SQL me "relation does not exist" | Migration order galat | 0001 se dobara |
 | "Permission denied" app me | Sahi hai! Security kaam kar rahi hai | Role/access check karo |
+| `EPERM ... .next` | Project OneDrive me hai | `C:\Projects` me shift karo |
 | `npm install` fail | Node purana | `node --version` — 20+ chahiye |
 | PowerShell "scripts disabled" | Windows policy | `cmd` use karo |
 

@@ -171,17 +171,68 @@ Terminal me:
 npm install
 ```
 
-- 3–5 minute lagega
+- 1–5 minute lagega
 - Bahut saara text scroll hoga — normal hai
-- Beech me `npm warn` aaye to ignore karo, wo warning hai error nahi
-- Khatam hone pe aisa kuch: `added 492 packages`
+- Khatam hone pe aisa kuch: `added 788 packages, and audited 789 packages`
 
-> **Agar PowerShell me error aaye** jaise *"running scripts is disabled"* —
-> to PowerShell ki jagah **Command Prompt (cmd)** use karo. Ya phir har command
-> ke aage ye laga do:
-> ```
-> cmd /c "npm install"
-> ```
+> Number aapke npm version ke hisaab se thoda alag ho sakta hai (700–800 ke
+> aas-paas). Farq nahi padta — `added` dikh gaya to ho gaya.
+
+### Jo warnings aayengi — sab normal hain
+
+**1. `npm warn deprecated ...`**
+
+Matlab "ye package ab maintain nahi hota". Ye **development tools** hain, app
+me nahi jaate. Ignore karo.
+
+**2. `N high severity vulnerabilities`**
+
+Ghabrao mat — ye **development tools** ke andar hain (eslint, shadcn CLI
+waghera). Ye sirf aapke laptop pe chalte hain, deployed website me jaate hi
+nahi, aur koi bahar se inpe attack nahi kar sakta.
+
+Khud verify karna ho — ye chalao:
+```
+npm audit --omit=dev
+```
+
+Ye sirf wo dikhata hai jo **asli deployed app** me jaate hain:
+```
+found 0 vulnerabilities
+```
+
+**0 aana chahiye.** Agar 0 se zyada aaye to batana — wo asli problem hogi.
+
+> ### 🔴 `npm audit fix --force` MAT chalana
+>
+> npm khud ye suggest karta hai, lekin `--force` ka matlab hai *"breaking
+> changes install kar do"*. Ye packages ko aise versions pe le jayega jo aapas
+> me compatible nahi honge, aur project chalna band ho jayega.
+
+**3. `install scripts blocked because they are not covered by allowScripts`**
+
+Naye npm (v12+) me ye security feature hai — `esbuild` aur `unrs-resolver`
+jaise packages ke scripts block ho jate hain.
+
+**Shayad** koi problem nahi hogi, lekin confirm karne ke liye Step 5.2 wala
+`npm run check` chala lena. Agar `esbuild` ya `binary` wala error aaye to:
+```
+npm install-scripts approve esbuild
+npm install-scripts approve unrs-resolver
+npm install
+```
+
+### Agar PowerShell me `running scripts is disabled` aaye
+
+Ye **har laptop pe nahi hota** — kuch Windows setups me hi hota hai.
+
+Aaye to: VS Code terminal me upar-right dropdown se **Command Prompt** chuno
+(PowerShell ki jagah). Ya har command ke aage `cmd /c` laga do:
+```
+cmd /c "npm install"
+```
+
+Nahi aaya to PowerShell me hi aaram se kaam karte raho.
 
 ---
 

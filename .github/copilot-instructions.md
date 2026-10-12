@@ -62,5 +62,8 @@ npm run lint && npm run typecheck && npm run test && npm run build
 
 - Prefer the existing stack. Do not add Prisma, a second database, a second auth provider or a
   global state library.
+- **Build-time tools belong in `devDependencies`.** `npm audit --omit=dev` must report zero
+  vulnerabilities: that is the command reflecting what actually ships. The shadcn CLI is a
+  generator, not a runtime dependency, even though `globals.css` imports a stylesheet from it.
 - Keep `package-lock.json` committed.
 - On Windows, invoke npm through cmd: `& $env:ComSpec /c "npm <command>"`.

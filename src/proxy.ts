@@ -39,6 +39,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  const needsAuthCheck = !isPublicPath(pathname) || ["/login", "/forgot-password", "/reset-password"].includes(pathname);
+
+  if (!needsAuthCheck) {
+    return NextResponse.next();
+  }
+
   const { response, user } = await updateSession(request);
 
   if (!user && !isPublicPath(pathname)) {
@@ -48,7 +54,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname === "/login" || pathname === "/forgot-password")) {
+  if (user && (pathname === "/login" || pathname === "/forgot-password" || pathname === "/reset-password")) {
     const url = request.nextUrl.clone();
     url.pathname = "/overview";
     url.search = "";

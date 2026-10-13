@@ -46,13 +46,33 @@ export default async function OverviewPage() {
     session.profile.onboarding_status === "PROFILE_INCOMPLETE" ||
     !session.profile.full_name;
 
-  const [snapshot, myTasks, mySheets] = await Promise.all([
-    getTimeTrackerSnapshot(supabase, session.id),
-    getOpenTasksForUser(supabase, session.id, 5),
-    listSheets(supabase),
-  ]);
-
   const isPrivileged = can(session.actor, "attendance.viewTeam");
+  const todayKey = businessDateKey();
+
+  const [snapshot, myTasks, mySheets, myReports, live, taskCounts, missing, teamReports, peopleCounts] =
+    await Promise.all([
+      getTimeTrackerSnapshot(supabase, session.id),
+      getOpenTasksForUser(supabase, session.id, 5),
+      listSheets(supabase),
+      listMyReports(supabase, session.id, 5),
+      isPrivileged ? getLiveTeamStatus(supabase) : Promise.resolve([]),
+      isPrivileged ? getTaskStatusCounts(supabase) : Promise.resolve({
+        TO_DO: 0,
+        IN_PROGRESS: 0,
+        IN_REVIEW: 0,
+        DONE: 0,
+        overdue: 0,
+        dueToday: 0,
+        total: 0,
+      }),
+      isPrivileged ? findMissingReports(supabase, todayKey) : Promise.resolve([]),
+      isPrivileged ? listTeamReports(supabase, { fromDate: todayKey, limit: 8 }) : Promise.resolve([]),
+      session.actor.role === "ADMIN" && isPrivileged ? getPeopleCounts(supabase) : Promise.resolve(null),
+    ]);
+
+  const submittedToday = myReports.some(
+    (report) => report.report_date === todayKey && report.status === "SUBMITTED",
+  );
 
   return (
     <div className="space-y-6">
@@ -165,195 +185,165 @@ export default async function OverviewPage() {
         </SectionCard>
       </div>
 
-      <MyReports userId={session.id} />
-
-      {isPrivileged && <TeamPanels isAdmin={session.actor.role === "ADMIN"} />}
-    </div>
-  );
-}
-
-async function MyReports({ userId }: { userId: string }) {
-  const supabase = await createClient();
-  const reports = await listMyReports(supabase, userId, 5);
-  const todayKey = businessDateKey();
-  const submittedToday = reports.some(
-    (report) => report.report_date === todayKey && report.status === "SUBMITTED",
-  );
-
-  return (
-    <SectionCard
-      title="Your recent daily reports"
-      description={
-        submittedToday
-          ? "Today's report is submitted."
-          : "Today's report has not been submitted yet."
-      }
-      actions={
-        <Button asChild variant={submittedToday ? "ghost" : "brand"} size="sm">
-          <Link href="/daily-reports">{submittedToday ? "View" : "Write today's report"}</Link>
-        </Button>
-      }
-    >
-      {reports.length === 0 ? (
-        <EmptyState
-          icon={FileTextIcon}
-          title="No reports yet"
-          description="A short daily report keeps your manager in the loop without a status meeting."
-          className="border-0"
-        />
-      ) : (
-        <ul className="space-y-3">
-          {reports.map((report) => (
-            <li
-              key={report.id}
-              className="border-border/60 flex flex-wrap items-center justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0"
-            >
-              <div className="min-w-0">
-                <p className="text-sm font-medium">
-                  {formatBusinessDate(`${report.report_date}T00:00:00Z`)}
-                </p>
-                <p className="text-muted-foreground mt-0.5 truncate text-xs">
-                  {report.summary ?? "No summary yet"}
-                </p>
-              </div>
-              <StatusPill tone={report.status === "SUBMITTED" ? "working" : "idle"}>
-                {report.status === "SUBMITTED" ? "Submitted" : "Draft"}
-              </StatusPill>
-            </li>
-          ))}
-        </ul>
-      )}
-    </SectionCard>
-  );
-}
-
-async function TeamPanels({ isAdmin }: { isAdmin: boolean }) {
-  const supabase = await createClient();
-  const todayKey = businessDateKey();
-
-  const [live, taskCounts, missing, teamReports, peopleCounts] = await Promise.all([
-    getLiveTeamStatus(supabase),
-    getTaskStatusCounts(supabase),
-    findMissingReports(supabase, todayKey),
-    listTeamReports(supabase, { fromDate: todayKey, limit: 8 }),
-    isAdmin ? getPeopleCounts(supabase) : Promise.resolve(null),
-  ]);
-
-  const onBreak = live.filter((entry) => entry.state === "ON_BREAK").length;
-
-  return (
-    <div className="space-y-5">
-      <div className="rv-hairline h-px" />
-
-      <h2 className="font-heading text-lg font-semibold">
-        {isAdmin ? "Across Rangmanch" : "Your team"}
-      </h2>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          label="Clocked in now"
-          value={live.length}
-          hint={onBreak > 0 ? `${onBreak} on a break` : "Open attendance sessions"}
-          icon={ClockIcon}
-        />
-        <MetricCard
-          label="Overdue tasks"
-          value={taskCounts.overdue}
-          hint="Past their due date and not done"
-          icon={TriangleAlertIcon}
-        />
-        <MetricCard
-          label="Due today"
-          value={taskCounts.dueToday}
-          hint="Open tasks with today's deadline"
-          icon={CalendarClockIcon}
-        />
-        <MetricCard
-          label={isAdmin ? "Active interns" : "Reports missing today"}
-          value={isAdmin ? (peopleCounts?.activeInterns ?? 0) : missing.length}
-          hint={
-            isAdmin
-              ? "Accounts with ACTIVE status"
-              : "No submitted report yet — not proof that no work happened"
-          }
-          icon={UsersIcon}
-        />
-      </div>
-
-      <div className="grid gap-5 lg:grid-cols-2">
-        <SectionCard
-          title="Who is working right now"
-          description="Live attendance for the people you are responsible for."
-        >
-          {live.length === 0 ? (
-            <EmptyState
-              icon={ClockIcon}
-              title="Nobody is clocked in"
-              description="Open sessions will appear here as soon as someone clocks in."
-              className="border-0"
-            />
-          ) : (
-            <ul className="space-y-3">
-              {live.map((entry) => (
-                <li
-                  key={entry.session.id}
-                  className="border-border/60 flex flex-wrap items-center justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{displayName(entry.profile)}</p>
-                    <p className="text-muted-foreground mt-0.5 text-xs">
-                      {formatDuration(entry.totals.netWorkMs)} worked today
-                    </p>
-                  </div>
-                  <StatusPill tone={entry.state === "ON_BREAK" ? "break" : "working"} pulse>
-                    {ATTENDANCE_STATE_LABELS[entry.state]}
-                  </StatusPill>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-
-        <SectionCard
-          title="Reports submitted today"
-          description="Only submitted reports are visible to you — drafts stay private to their author."
-          actions={
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/team">
-                Review
-                <ArrowRightIcon aria-hidden />
-              </Link>
-            </Button>
-          }
-        >
-          {teamReports.length === 0 ? (
-            <EmptyState
-              icon={FileTextIcon}
-              title="Nothing submitted yet today"
-              description={
-                missing.length > 0
-                  ? `${missing.length} person${missing.length === 1 ? "" : "s"} have not submitted yet.`
-                  : "Reports will appear here through the day."
-              }
-              className="border-0"
-            />
-          ) : (
-            <ul className="space-y-3">
-              {teamReports.map((report) => (
-                <li
-                  key={report.id}
-                  className="border-border/60 border-b pb-3 last:border-b-0 last:pb-0"
-                >
-                  <p className="text-sm font-medium">{displayName(report.author)}</p>
-                  <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-relaxed">
-                    {report.summary}
+      <SectionCard
+        title="Your recent daily reports"
+        description={
+          submittedToday
+            ? "Today's report is submitted."
+            : "Today's report has not been submitted yet."
+        }
+        actions={
+          <Button asChild variant={submittedToday ? "ghost" : "brand"} size="sm">
+            <Link href="/daily-reports">{submittedToday ? "View" : "Write today's report"}</Link>
+          </Button>
+        }
+      >
+        {myReports.length === 0 ? (
+          <EmptyState
+            icon={FileTextIcon}
+            title="No reports yet"
+            description="A short daily report keeps your manager in the loop without a status meeting."
+            className="border-0"
+          />
+        ) : (
+          <ul className="space-y-3">
+            {myReports.map((report) => (
+              <li
+                key={report.id}
+                className="border-border/60 flex flex-wrap items-center justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">
+                    {formatBusinessDate(`${report.report_date}T00:00:00Z`)}
                   </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </SectionCard>
-      </div>
+                  <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                    {report.summary ?? "No summary yet"}
+                  </p>
+                </div>
+                <StatusPill tone={report.status === "SUBMITTED" ? "working" : "idle"}>
+                  {report.status === "SUBMITTED" ? "Submitted" : "Draft"}
+                </StatusPill>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+
+      {isPrivileged && (
+        <div className="space-y-5">
+          <div className="rv-hairline h-px" />
+
+          <h2 className="font-heading text-lg font-semibold">
+            {session.actor.role === "ADMIN" ? "Across Rangmanch" : "Your team"}
+          </h2>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <MetricCard
+              label="Clocked in now"
+              value={live.length}
+              hint={live.filter((entry) => entry.state === "ON_BREAK").length > 0 ? `${live.filter((entry) => entry.state === "ON_BREAK").length} on a break` : "Open attendance sessions"}
+              icon={ClockIcon}
+            />
+            <MetricCard
+              label="Overdue tasks"
+              value={taskCounts.overdue}
+              hint="Past their due date and not done"
+              icon={TriangleAlertIcon}
+            />
+            <MetricCard
+              label="Due today"
+              value={taskCounts.dueToday}
+              hint="Open tasks with today's deadline"
+              icon={CalendarClockIcon}
+            />
+            <MetricCard
+              label={session.actor.role === "ADMIN" ? "Active interns" : "Reports missing today"}
+              value={session.actor.role === "ADMIN" ? (peopleCounts?.activeInterns ?? 0) : missing.length}
+              hint={
+                session.actor.role === "ADMIN"
+                  ? "Accounts with ACTIVE status"
+                  : "No submitted report yet — not proof that no work happened"
+              }
+              icon={UsersIcon}
+            />
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-2">
+            <SectionCard
+              title="Who is working right now"
+              description="Live attendance for the people you are responsible for."
+            >
+              {live.length === 0 ? (
+                <EmptyState
+                  icon={ClockIcon}
+                  title="Nobody is clocked in"
+                  description="Open sessions will appear here as soon as someone clocks in."
+                  className="border-0"
+                />
+              ) : (
+                <ul className="space-y-3">
+                  {live.map((entry) => (
+                    <li
+                      key={entry.session.id}
+                      className="border-border/60 flex flex-wrap items-center justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{displayName(entry.profile)}</p>
+                        <p className="text-muted-foreground mt-0.5 text-xs">
+                          {formatDuration(entry.totals.netWorkMs)} worked today
+                        </p>
+                      </div>
+                      <StatusPill tone={entry.state === "ON_BREAK" ? "break" : "working"} pulse>
+                        {ATTENDANCE_STATE_LABELS[entry.state]}
+                      </StatusPill>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+
+            <SectionCard
+              title="Reports submitted today"
+              description="Only submitted reports are visible to you — drafts stay private to their author."
+              actions={
+                <Button asChild variant="ghost" size="sm">
+                  <Link href="/team">
+                    Review
+                    <ArrowRightIcon aria-hidden />
+                  </Link>
+                </Button>
+              }
+            >
+              {teamReports.length === 0 ? (
+                <EmptyState
+                  icon={FileTextIcon}
+                  title="Nothing submitted yet today"
+                  description={
+                    missing.length > 0
+                      ? `${missing.length} person${missing.length === 1 ? "" : "s"} have not submitted yet.`
+                      : "Reports will appear here through the day."
+                  }
+                  className="border-0"
+                />
+              ) : (
+                <ul className="space-y-3">
+                  {teamReports.map((report) => (
+                    <li
+                      key={report.id}
+                      className="border-border/60 border-b pb-3 last:border-b-0 last:pb-0"
+                    >
+                      <p className="text-sm font-medium">{displayName(report.author)}</p>
+                      <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-relaxed">
+                        {report.summary}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

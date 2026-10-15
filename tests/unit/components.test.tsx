@@ -13,6 +13,11 @@ vi.mock("@/lib/actions/reports", () => ({
   reviewReportAction: vi.fn(async () => ({ ok: true, message: "saved" })),
 }));
 
+vi.mock("next/navigation", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next/navigation")>();
+  return { ...actual, useRouter: () => ({ refresh: vi.fn() }) };
+});
+
 function task(overrides: Partial<TaskWithPeople> = {}): TaskWithPeople {
   return {
     id: "task-1",

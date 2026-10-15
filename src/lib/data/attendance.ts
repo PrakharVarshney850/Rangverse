@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/db/database.types";
+import { throwIfReadFailed } from "@/lib/data/read-pages";
 import {
   businessDateKey,
   businessDayRange,
@@ -75,6 +76,10 @@ export async function getTimeTrackerSnapshot(
       .limit(1),
   ]);
 
+  for (const result of [openResult, todayResult, weekResult, recentResult, timerResult]) {
+    throwIfReadFailed(result.error);
+  }
+
   const openSession = (openResult.data?.[0] as SessionWithBreaks | undefined) ?? null;
   const openBreak = openSession?.breaks.find((entry) => entry.ended_at === null) ?? null;
   const runningTimer = (timerResult.data?.[0] as RunningTaskTimer | undefined) ?? null;
@@ -98,12 +103,13 @@ export async function getAttendanceTotals(
   toIso: string,
   now: Date = new Date(),
 ): Promise<AggregateTotals> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("attendance_sessions")
     .select(SESSION_SELECT)
     .eq("user_id", userId)
     .gte("clock_in_at", fromIso)
     .lt("clock_in_at", toIso);
+  throwIfReadFailed(error);
 
   return sumSessionTotals((data ?? []) as SessionWithBreaks[], now);
 }
@@ -125,11 +131,12 @@ export async function getLiveTeamStatus(
   supabase: SupabaseClient<Database>,
   now: Date = new Date(),
 ): Promise<LiveStatusEntry[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("attendance_sessions")
     .select("*, breaks(*), profile:profiles!attendance_sessions_user_id_fkey(id, full_name, email)")
     .is("clock_out_at", null)
     .order("clock_in_at", { ascending: true });
+  throwIfReadFailed(error);
 
   type LiveRow = SessionWithBreaks & {
     profile: { id: string; full_name: string | null; email: string } | null;

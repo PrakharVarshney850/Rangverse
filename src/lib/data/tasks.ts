@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database, TaskRow } from "@/lib/db/database.types";
+import { readAllPages, throwIfReadFailed } from "@/lib/data/read-pages";
 import { businessDateKey } from "@/lib/domain/time";
 import type { TaskComment, TaskPage, TaskWithPeople } from "@/lib/view-models";
 import type { TaskFilterInput } from "@/lib/validation/task";
@@ -117,9 +118,13 @@ export async function getTaskTimeEntries(
 
 /** Counts by status across everything the caller may see. */
 export async function getTaskStatusCounts(supabase: SupabaseClient<Database>) {
-  const { data } = await supabase.from("tasks").select("status, due_date").limit(5000);
-
-  const rows = (data ?? []) as Pick<TaskRow, "status" | "due_date">[];
+  const rows = await readAllPages<Pick<TaskRow, "status" | "due_date">>((from, to) =>
+    supabase
+      .from("tasks")
+      .select("id, status, due_date", { count: "exact" })
+      .order("id", { ascending: true })
+      .range(from, to),
+  );
   const today = businessDateKey();
 
   return {
@@ -140,13 +145,14 @@ export async function getOpenTasksForUser(
   userId: string,
   limit = 10,
 ): Promise<TaskWithPeople[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("tasks")
     .select(TASK_SELECT)
     .eq("assignee_id", userId)
     .neq("status", "DONE")
     .order("due_date", { ascending: true, nullsFirst: false })
     .limit(limit);
+  throwIfReadFailed(error);
 
   return (data ?? []) as TaskWithPeople[];
 }

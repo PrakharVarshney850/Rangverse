@@ -257,7 +257,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint: stri
         {label}
       </dt>
       <dd className="font-heading mt-1.5 text-lg font-bold tabular-nums">{value}</dd>
-      <p className="text-muted-foreground mt-0.5 text-[0.7rem]">{hint}</p>
+      <dd className="text-muted-foreground mt-0.5 text-[0.7rem]">{hint}</dd>
     </div>
   );
 }

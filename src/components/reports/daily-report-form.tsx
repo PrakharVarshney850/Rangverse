@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { LoaderCircleIcon, PlusIcon, SaveIcon, SendIcon, XIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ export function DailyReportForm({
   report: ReportWithPeople | null;
   tasks: TaskWithPeople[];
 }) {
+  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [links, setLinks] = useState<string[]>(report?.evidence_links ?? []);
@@ -44,6 +46,7 @@ export function DailyReportForm({
       if (result.ok) {
         toast.success(result.message);
         setFieldErrors({});
+        if (intent === "SUBMIT") router.refresh();
       } else {
         setFieldErrors(result.fieldErrors ?? {});
         toast.error(result.message);

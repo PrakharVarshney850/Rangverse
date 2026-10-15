@@ -8,6 +8,7 @@ import type {
   DataSheetMembershipRow,
   DataSheetRow,
 } from "@/lib/db/database.types";
+import { throwIfReadFailed } from "@/lib/data/read-pages";
 import type { PersonSummary } from "@/lib/display";
 import type { SheetRecord, SheetRowPage } from "@/lib/view-models";
 
@@ -22,11 +23,12 @@ export const SHEET_ROWS_PAGE_SIZE = 25;
 
 /** Sheets the caller may open. Row level security performs the filtering. */
 export async function listSheets(supabase: SupabaseClient<Database>): Promise<SheetSummary[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("data_sheets")
     .select("*, memberships:data_sheet_memberships(user_id, access_level)")
     .eq("status", "ACTIVE")
     .order("title", { ascending: true });
+  throwIfReadFailed(error);
 
   return (data ?? []) as SheetSummary[];
 }

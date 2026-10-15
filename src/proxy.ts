@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
   "/auth/sign-out",
   "/setup-required",
 ];
+const GUEST_ONLY_PATHS = ["/login", "/forgot-password"];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -39,7 +40,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const needsAuthCheck = !isPublicPath(pathname) || ["/login", "/forgot-password", "/reset-password"].includes(pathname);
+  const needsAuthCheck = !isPublicPath(pathname) ||
+    GUEST_ONLY_PATHS.includes(pathname) ||
+    pathname === "/reset-password";
 
   if (!needsAuthCheck) {
     return NextResponse.next();
@@ -54,7 +57,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname === "/login" || pathname === "/forgot-password" || pathname === "/reset-password")) {
+  if (user && GUEST_ONLY_PATHS.includes(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/overview";
     url.search = "";

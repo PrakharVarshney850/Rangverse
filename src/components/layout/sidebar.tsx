@@ -29,7 +29,7 @@ function NavLink({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
         {!collapsed && (
           <>
             <span className="truncate">{item.label}</span>
-            <span className="border-border text-muted-foreground/70 ml-auto rounded-full border px-1.5 py-0.5 text-[0.6rem] tracking-wider uppercase">
+            <span className="border-border text-muted-foreground ml-auto rounded-full border px-1.5 py-0.5 text-[0.6rem] tracking-wider uppercase">
               {item.comingIn}
             </span>
           </>
@@ -80,7 +80,7 @@ function NavGroup({
   return (
     <div className="space-y-1">
       {!collapsed && (
-        <p className="text-muted-foreground/70 px-3 pt-5 pb-2 text-[0.6rem] font-medium tracking-[0.2em] uppercase">
+        <p className="text-muted-foreground px-3 pt-5 pb-2 text-[0.6rem] font-medium tracking-[0.2em] uppercase">
           {title}
         </p>
       )}

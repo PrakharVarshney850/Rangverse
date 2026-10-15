@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/db/database.types";
+import { throwIfReadFailed } from "@/lib/data/read-pages";
 import type { PersonSummary } from "@/lib/display";
 import { businessDateKey } from "@/lib/domain/time";
 import type { ReportWithPeople } from "@/lib/view-models";
@@ -32,12 +33,13 @@ export async function listMyReports(
   userId: string,
   limit = 30,
 ): Promise<ReportWithPeople[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("daily_work_reports")
     .select(REPORT_SELECT)
     .eq("user_id", userId)
     .order("report_date", { ascending: false })
     .limit(limit);
+  throwIfReadFailed(error);
 
   return (data ?? []) as ReportWithPeople[];
 }
@@ -62,7 +64,8 @@ export async function listTeamReports(
   if (options.fromDate) query = query.gte("report_date", options.fromDate);
   if (options.toDate) query = query.lte("report_date", options.toDate);
 
-  const { data } = await query;
+  const { data, error } = await query;
+  throwIfReadFailed(error);
   return (data ?? []) as ReportWithPeople[];
 }
 
@@ -90,6 +93,8 @@ export async function findMissingReports(
       .eq("report_date", dateKey)
       .eq("status", "SUBMITTED"),
   ]);
+  throwIfReadFailed(peopleResult.error);
+  throwIfReadFailed(reportsResult.error);
 
   const submitted = new Set((reportsResult.data ?? []).map((row) => row.user_id));
 

@@ -93,7 +93,7 @@ export function MobileNavDrawer({ actor }: { actor: Actor }) {
 
           {admin.length > 0 && (
             <>
-              <p className="text-muted-foreground/70 px-3 pt-5 pb-2 text-[0.6rem] font-medium tracking-[0.2em] uppercase">
+              <p className="text-muted-foreground px-3 pt-5 pb-2 text-[0.6rem] font-medium tracking-[0.2em] uppercase">
                 Administration
               </p>
               {admin.map((item) => (

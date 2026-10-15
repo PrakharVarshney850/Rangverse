@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { ActivityLogRow, Database, ProfileRow, TeamRow } from "@/lib/db/database.types";
+import { readAllPages } from "@/lib/data/read-pages";
 
 export type PersonSummary = { id: string; full_name: string | null; email: string };
 
@@ -105,9 +106,13 @@ export async function listActivity(
 
 /** Headline counts for the administrator dashboard. */
 export async function getPeopleCounts(supabase: SupabaseClient<Database>) {
-  const { data } = await supabase.from("profiles").select("role, onboarding_status").limit(2000);
-
-  const rows = (data ?? []) as Pick<ProfileRow, "role" | "onboarding_status">[];
+  const rows = await readAllPages<Pick<ProfileRow, "role" | "onboarding_status">>((from, to) =>
+    supabase
+      .from("profiles")
+      .select("id, role, onboarding_status", { count: "exact" })
+      .order("id", { ascending: true })
+      .range(from, to),
+  );
   const active = rows.filter((row) => row.onboarding_status === "ACTIVE");
 
   return {

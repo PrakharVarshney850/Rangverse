@@ -156,7 +156,7 @@ async function main() {
       if (/does not exist|schema cache|relation/i.test(error.message)) {
         bad(
           "Connection to ho gaya, lekin tables nahi mile",
-          "Migrations nahi chalayi. supabase/migrations ki 6 files SQL Editor me 0001 se 0006 ke order me chalao.",
+          "Migrations nahi chalayi. supabase/migrations ki 7 files SQL Editor me 0001 se 0007 ke order me chalao.",
         );
         return finish();
       }
@@ -216,7 +216,7 @@ async function main() {
   } else {
     bad(
       `${missing.length} tables missing: ${missing.slice(0, 5).join(", ")}${missing.length > 5 ? "…" : ""}`,
-      "Migrations adhoori hain. 0001 se 0006 tak, order me dobara chalao.",
+      "Migrations adhoori hain. 0001 se 0007 tak, order me dobara chalao.",
     );
     return finish();
   }

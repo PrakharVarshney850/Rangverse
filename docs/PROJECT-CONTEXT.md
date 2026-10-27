@@ -167,12 +167,13 @@ Repository test commands are documented in `package.json` and
 - Database RLS/integration tests use PGlite and do not require a live Supabase
   project.
 
-Most recent test results observed in the conversation on 2026-10-21:
+Most recent test results observed in the conversation on 2026-10-28:
 
-- `npm run verify`: passed; 252 tests across 13 files and production build
-  succeeded.
-- `npm run test:e2e`: 54 passed, 28 skipped, 0 failed.
-- Authenticated E2E skips were due to absent E2E credentials in that run.
+- `npm run verify`: passed; 253 tests across 13 files and production build
+  succeeded after adding the administrator report-submission regression case.
+- `npm run test:e2e`: 54 passed, 28 skipped, 0 failed against the local app.
+- Authenticated E2E skips were deliberate: E2E credentials were unset to avoid
+  mutation-heavy tests against the connected Supabase project.
 - A prior run against a staging server was reported as 78 passed, 4 skipped,
   0 failed. That run changed staging data (attendance events and a test report).
   It is historical evidence, not a result re-executed while creating this

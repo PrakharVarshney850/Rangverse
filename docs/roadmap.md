@@ -22,7 +22,7 @@ The working MVP.
 - **Dashboards** — intern, manager and administrator overviews computed from authorised data.
 - **Reports** — hours and delivery with date-range selectors and explained metrics.
 - **Audit** — append-only activity history scoped by relationship.
-- **Quality** — 123 unit/RLS/integration tests, 54 public browser tests with axe, strict
+- **Quality** — 253 unit/RLS/integration tests, 54 public browser tests with axe, strict
   TypeScript, CI.
 
 ---

@@ -68,11 +68,11 @@ function page(rows: SheetRecord[], overrides: Partial<SheetRowPage> = {}): Sheet
 
 const baseProps = {
   sheetId: "sheet-1",
+  sheetSlug: "x",
   columns: COLUMNS,
   canEdit: true,
   canAssign: false,
   assignees: [],
-  buildHref: (n: number) => `/data/x?page=${n}`,
   searchTerm: "",
 };
 

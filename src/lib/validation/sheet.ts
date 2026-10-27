@@ -86,9 +86,7 @@ export function buildRowSchema(columns: readonly DataSheetColumnRow[]) {
           .regex(/^-?\d+(\.\d+)?$/, `${column.label} must be a number`);
         break;
       case "BOOLEAN":
-        field = z.enum(["true", "false"], {
-          errorMap: () => ({ message: `${column.label} must be yes or no` }),
-        });
+        field = z.enum(["true", "false"], `${column.label} must be yes or no`);
         break;
       case "DATE":
         field = z
@@ -114,9 +112,10 @@ export function buildRowSchema(columns: readonly DataSheetColumnRow[]) {
       case "SELECT":
         field =
           column.options.length > 0
-            ? z.enum(column.options as [string, ...string[]], {
-                errorMap: () => ({ message: `Choose a valid option for ${column.label}` }),
-              })
+            ? z.enum(
+                column.options as [string, ...string[]],
+                `Choose a valid option for ${column.label}`,
+              )
             : z.string().trim().max(200);
         break;
       case "LONG_TEXT":

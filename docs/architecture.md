@@ -68,7 +68,7 @@ src/
     navigation.ts        role-aware nav definition
 
 supabase/
-  migrations/            0001…0006, ordered and reproducible
+  migrations/            0001…0007, ordered and reproducible
   seed.sql               local structure only — no people, no records
 
 tests/

@@ -40,6 +40,7 @@ Migrations are ordered and reproducible:
 | `0004_daily_reports.sql` | reports and task links |
 | `0005_data_hub.sql` | sheets, columns, memberships, records, JSONB validation |
 | `0006_time_state_machine.sql` | the clock/break/timer RPCs |
+| `0007_daily_report_admin_submit.sql` | stamps administrator submissions when an upsert updates an existing draft |
 
 > **Never** make undocumented changes in the Supabase dashboard. Anything not in
 > `supabase/migrations/` will be lost on the next environment rebuild and will drift from the

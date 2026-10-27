@@ -11,7 +11,7 @@ export type ReportMutationResult =
   | { ok: true; message: string }
   | { ok: false; message: string; fieldErrors?: Record<string, string> };
 
-function fieldErrorsFrom(error: { issues: { path: (string | number)[]; message: string }[] }) {
+function fieldErrorsFrom(error: { issues: { path: readonly PropertyKey[]; message: string }[] }) {
   const fieldErrors: Record<string, string> = {};
   for (const issue of error.issues) {
     const key = String(issue.path[0] ?? "form");

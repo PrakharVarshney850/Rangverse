@@ -376,14 +376,14 @@ Push hone ke baad GitHub pe page refresh karo — saari files dikhengi. ✅
 > ### Region Mumbai kyun
 > Jitna paas server, utni fast website. Team India me hai to Mumbai best hai.
 
-## Step 4.2 — Tables banao (6 files, order me)
+## Step 4.2 — Tables banao (7 files, order me)
 
 Ye sabse important step hai. **Order galat hua to fail hoga.**
 
 1. Supabase me left sidebar se **SQL Editor** kholo (`</>` icon)
 2. **New query** dabao
 
-Ab ye 6 files **ek-ek karke, isi order me** chalani hain:
+Ab ye 7 files **ek-ek karke, isi order me** chalani hain:
 
 ```
 1.  supabase/migrations/0001_core.sql
@@ -392,6 +392,7 @@ Ab ye 6 files **ek-ek karke, isi order me** chalani hain:
 4.  supabase/migrations/0004_daily_reports.sql
 5.  supabase/migrations/0005_data_hub.sql
 6.  supabase/migrations/0006_time_state_machine.sql
+7.  supabase/migrations/0007_daily_report_admin_submit.sql
 ```
 
 **Har file ke liye ye karo:**
@@ -766,6 +767,7 @@ PART 4 — Supabase
   □ 0004_daily_reports.sql  chalayi
   □ 0005_data_hub.sql       chalayi
   □ 0006_time_state_machine.sql chalayi
+  □ 0007_daily_report_admin_submit.sql chalayi
   □ "Allow new users to sign up" OFF kiya
   □ 3 keys Notepad me label laga ke likhi
 

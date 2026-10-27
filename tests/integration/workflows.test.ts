@@ -197,6 +197,37 @@ describe("Rangverse workflows", () => {
   });
 
   describe("daily reporting", () => {
+    it("stamps a submitted report when an administrator submits an existing draft", async () => {
+      const { db } = seed;
+      const dateKey = "2026-03-10";
+
+      await db.asUser(
+        ADMIN,
+        `insert into public.daily_work_reports (user_id, report_date, summary)
+         values ($1, $2, 'Drafted by an administrator')`,
+        [IDS.admin, dateKey],
+      );
+
+      const [submitted] = await db.asUser<{ status: string; submitted_at: string | null }>(
+        ADMIN,
+        `insert into public.daily_work_reports
+           (user_id, report_date, summary, progress, blockers, next_steps, evidence_links, status)
+         values ($1, $2, 'Submitted by an administrator', '', '', '', array[]::text[], 'SUBMITTED')
+         on conflict (user_id, report_date) do update set
+           summary = excluded.summary,
+           progress = excluded.progress,
+           blockers = excluded.blockers,
+           next_steps = excluded.next_steps,
+           evidence_links = excluded.evidence_links,
+           status = excluded.status
+         returning status, submitted_at`,
+        [IDS.admin, dateKey],
+      );
+
+      expect(submitted?.status).toBe("SUBMITTED");
+      expect(submitted?.submitted_at).toBeTruthy();
+    });
+
     it("moves a draft to submitted and surfaces it to the manager", async () => {
       const { db } = seed;
       const dateKey = "2026-03-09";

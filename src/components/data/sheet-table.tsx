@@ -53,27 +53,36 @@ type RowModel = SheetRecord;
 
 export function SheetTable({
   sheetId,
+  sheetSlug,
   columns,
   page,
   canEdit,
   canAssign,
   assignees,
-  buildHref,
   searchTerm,
 }: {
   sheetId: string;
+  sheetSlug: string;
   columns: DataSheetColumnRow[];
   page: SheetRowPage;
   canEdit: boolean;
   canAssign: boolean;
   assignees: PersonSummary[];
-  buildHref: (pageNumber: number) => string;
   searchTerm: string;
 }) {
   const router = useRouter();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [editing, setEditing] = useState<RowModel | null>(null);
   const [creating, setCreating] = useState(false);
+
+  function buildHref(pageNumber: number) {
+    const next = new URLSearchParams();
+    if (searchTerm) next.set("q", searchTerm);
+    if (pageNumber > 1) next.set("page", String(pageNumber));
+    const query = next.toString();
+    const base = `/data/${sheetSlug}`;
+    return query ? `${base}?${query}` : base;
+  }
 
   const tableColumns = useMemo<LegacyColumnDef<RowModel>[]>(() => {
     const configured: LegacyColumnDef<RowModel>[] = columns.map((column) => ({

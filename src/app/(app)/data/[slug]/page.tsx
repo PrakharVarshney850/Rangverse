@@ -62,14 +62,6 @@ export default async function SheetPage({
     );
   }
 
-  const buildHref = (pageNumber: number) => {
-    const next = new URLSearchParams();
-    if (search) next.set("q", search);
-    if (pageNumber > 1) next.set("page", String(pageNumber));
-    const qs = next.toString();
-    return qs ? `/data/${slug}?${qs}` : `/data/${slug}`;
-  };
-
   return (
     <div className="space-y-6">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
@@ -101,7 +93,7 @@ export default async function SheetPage({
           canEdit={accessLevel === "EDIT"}
           canAssign={canAssign}
           assignees={assignees}
-          buildHref={buildHref}
+          sheetSlug={slug}
           searchTerm={search}
         />
       )}
